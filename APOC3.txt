@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Load Conda environment
+source /home/asooda/miniconda3/etc/profile.d/conda.sh
+
+################################################################################
+# FLAMES Pipeline
+################################################################################
+
+# Activate FLAMES environment
+conda activate FLAMES
+
+# Navigate to the FLAMES directory
+cd /mnt/d/Tools/FLAMES/python
+
+# HepG2
+./bulk_long_pipeline.py \
+    --gff3 /mnt/d/Manuscript_RNA_analysis/Final/Reference/gencode.v47.primary_assembly.annotation.gtf \
+    --genomefa /mnt/d/Manuscript_RNA_analysis/Final/Reference/GRCh38.primary_assembly.genome.fa \
+    --outdir /mnt/d/Manuscript_RNA_analysis/Final/HepG2/FLAMES \
+    --config_file /mnt/d/Tools/FLAMES/python/config_sclr_nanopore_default.json \
+    --fq_dir /mnt/d/Manuscript_RNA_analysis/Final/HepG2/Fastq
+
+# Huh7
+./bulk_long_pipeline.py \
+    --gff3 /mnt/d/Manuscript_RNA_analysis/Final/Reference/gencode.v47.primary_assembly.annotation.gtf \
+    --genomefa /mnt/d/Manuscript_RNA_analysis/Final/Reference/GRCh38.primary_assembly.genome.fa \
+    --outdir /mnt/d/Manuscript_RNA_analysis/Final/Huh7/FLAMES \
+    --config_file /mnt/d/Tools/FLAMES/python/config_sclr_nanopore_default.json \
+    --fq_dir /mnt/d/Manuscript_RNA_analysis/Final/Huh7/Fastq
+
+# Liver 
+./bulk_long_pipeline.py \
+    --gff3 /mnt/d/Manuscript_RNA_analysis/Final/Reference/gencode.v47.primary_assembly.annotation.gtf \
+    --genomefa /mnt/d/Manuscript_RNA_analysis/Final/Reference/GRCh38.primary_assembly.genome.fa \
+    --outdir /mnt/d/Manuscript_RNA_analysis/Final/Liver/FLAMES \
+    --config_file /mnt/d/Tools/FLAMES/python/config_sclr_nanopore_default.json \
+    --fq_dir /mnt/d/Manuscript_RNA_analysis/Final/Liver/Fastq
+
+# Deactivate FLAMES environment
+conda deactivate
+
+################################################################################
+# SQANTI3 Pipeline
+################################################################################
+
+# Activate SQANTI3 environment
+conda activate SQANTI3.env
+
+# Navigate to SQANTI3 directory and set PYTHONPATH
+cd /mnt/d/Tools/SQANTI3-5.2
+export PYTHONPATH=$PYTHONPATH:/mnt/d/Tools/SQANTI3-5.2/cDNA_Cupcake/sequence/
+export PYTHONPATH=$PYTHONPATH:/mnt/d/Tools/SQANTI3-5.2/cDNA_Cupcake/
+
+# HepG2
+python sqanti3_qc.py \
+    /mnt/d/Manuscript_RNA_analysis/Final/HepG2/FLAMES/isoform_annotated.filtered.gff3 \
+    /mnt/d/Manuscript_RNA_analysis/Final/Reference/gencode.v47.primary_assembly.annotation.gtf \
+    /mnt/d/Manuscript_RNA_analysis/Final/Reference/GRCh38.primary_assembly.genome.fa \
+    --CAGE_peak /mnt/d/Tools/SQANTI3-5.2/data/ref_TSS_annotation/human.refTSS_v3.1.hg38.bed \
+    --polyA_motif_list /mnt/d/Tools/SQANTI3-5.2/data/polyA_motifs/mouse_and_human.polyA_motif.txt \
+    -d /mnt/d/Manuscript_RNA_analysis/Final/HepG2/FLAMES/SQANTI3
+
+# Huh7
+python sqanti3_qc.py \
+    /mnt/d/Manuscript_RNA_analysis/Final/Huh7/FLAMES/isoform_annotated.filtered.gff3 \
+    /mnt/d/Manuscript_RNA_analysis/Final/Reference/gencode.v47.primary_assembly.annotation.gtf \
+    /mnt/d/Manuscript_RNA_analysis/Final/Reference/GRCh38.primary_assembly.genome.fa \
+    --CAGE_peak /mnt/d/Tools/SQANTI3-5.2/data/ref_TSS_annotation/human.refTSS_v3.1.hg38.bed \
+    --polyA_motif_list /mnt/d/Tools/SQANTI3-5.2/data/polyA_motifs/mouse_and_human.polyA_motif.txt \
+    -d /mnt/d/Manuscript_RNA_analysis/Final/Huh7/FLAMES/SQANTI3
+
+#Liver
+
+python sqanti3_qc.py \
+    /mnt/d/Manuscript_RNA_analysis/Final/Liver/FLAMES/isoform_annotated.filtered.gff3 \
+    /mnt/d/Manuscript_RNA_analysis/Final/Reference/gencode.v47.primary_assembly.annotation.gtf \
+    /mnt/d/Manuscript_RNA_analysis/Final/Reference/GRCh38.primary_assembly.genome.fa \
+    --CAGE_peak /mnt/d/Tools/SQANTI3-5.2/data/ref_TSS_annotation/human.refTSS_v3.1.hg38.bed \
+    --polyA_motif_list /mnt/d/Tools/SQANTI3-5.2/data/polyA_motifs/mouse_and_human.polyA_motif.txt \
+    -d /mnt/d/Manuscript_RNA_analysis/Final/Liver/FLAMES/SQANTI3
+
+# Filter isoforms
+python sqanti3_filter.py rules /mnt/d/Manuscript_RNA_analysis/Final/HepG2/FLAMES/SQANTI3/isoform_annotated.filtered_classification.txt
+python sqanti3_filter.py rules /mnt/d/Manuscript_RNA_analysis/Final/Huh7/FLAMES/SQANTI3/isoform_annotated.filtered_classification.txt
+python sqanti3_filter.py rules /mnt/d/Manuscript_RNA_analysis/Final/Liver/FLAMES/SQANTI3/isoform_annotated.filtered_classification.txt
+
